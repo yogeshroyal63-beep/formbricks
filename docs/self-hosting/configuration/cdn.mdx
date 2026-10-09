@@ -143,3 +143,10 @@ If users still see outdated surveys or broken embeds after an upgrade, check the
 
 If problems remain, temporarily bypass the CDN for the public domain. If the issue disappears immediately, the CDN
 cache policy is the first place to investigate.
+
+## Troubleshooting image optimization
+
+If `/_next/image` returns a 400 response saying the `url` parameter is required, ensure your reverse proxy or CDN
+forwards the complete query string unchanged. Next.js uses the `url`, `w`, and `q` query parameters to identify and
+transform the source image; proxy rewrites that remove them will prevent image optimization from working. When HTTPS
+terminates at the proxy, also forward the original `Host` and `X-Forwarded-Proto` headers.
