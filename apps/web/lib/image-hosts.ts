@@ -20,22 +20,25 @@ const optimizableProtocolFor = (hostname: string): string =>
  * would not (and should not) serve it.
  *
  * Returns `false` (i.e. optimize) for:
- * - relative paths (`/storage/...`, `/images/...`) — local images, optimized via `localPatterns`;
+ * - relative paths other than `/storage/...` — local images, optimized via `localPatterns`;
  * - `data:` URIs, `StaticImageData` imports, or empty/nullish values;
  * - absolute URLs whose host is in {@link OPTIMIZABLE_IMAGE_HOSTS} AND whose protocol matches what
  *   `next.config.mjs` generates for that host in `remotePatterns` (`http` for loopback, `https`
  *   otherwise).
  *
- * Returns `true` (i.e. bypass the optimizer, serve directly) for any other absolute `http(s)` URL —
- * i.e. arbitrary user-provided external images, or an allowlisted host requested over the "wrong"
- * protocol (which the optimizer would reject with a 400 anyway). This keeps the optimizer from acting
- * as an open proxy for hosts we don't control, without breaking rendering of those images.
+ * Returns `true` (i.e. bypass the optimizer, serve directly) for `/storage/...` uploads and any other
+ * absolute `http(s)` URL — i.e. arbitrary user-provided external images, or an allowlisted host
+ * requested over the "wrong" protocol (which the optimizer would reject with a 400 anyway). Serving
+ * uploaded images directly also avoids proxy issues with the optimizer's query-string-based endpoint.
+ * This keeps the optimizer from acting as an open proxy for hosts we don't control, without breaking
+ * rendering of those images.
  *
  * The decision depends only on the src string, so it is identical on the server and client (no
  * hydration mismatch).
  */
 export const isExternalImageSrc = (src: string | StaticImageData | null | undefined): boolean => {
   if (!src || typeof src !== "string") return false;
+  if (src.startsWith("/storage/")) return true;
   if (!/^https?:\/\//i.test(src)) return false; // relative path or data: URI → local/optimizable
   try {
     const url = new URL(src);

@@ -3,8 +3,8 @@ import { describe, expect, test } from "vitest";
 import { OPTIMIZABLE_IMAGE_HOSTS, isExternalImageSrc } from "./image-hosts";
 
 describe("isExternalImageSrc", () => {
-  test("treats relative first-party paths as optimizable (not external)", () => {
-    expect(isExternalImageSrc("/storage/ws/public/logo.png")).toBe(false);
+  test("bypasses optimization for uploaded storage images but keeps other local paths optimizable", () => {
+    expect(isExternalImageSrc("/storage/ws/public/logo.png")).toBe(true);
     expect(isExternalImageSrc("/images/hero.png")).toBe(false);
   });
 
